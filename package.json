@@ -1,0 +1,39 @@
+{
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "./dist/main.js",
+  "module": "./dist/main.mjs",
+  "typings": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/main.mjs",
+      "require": "./dist/main.js"
+    }
+  },
+  "private": false,
+  "files": [
+    "types",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "npx vite build",
+    "clean": "npx rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "tabWidth": 2
+  },
+  "name": "@xania/state",
+  "author": "Ibrahim ben Salah",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xania/rx.git"
+  }
+}

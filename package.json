@@ -1,13 +1,14 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.3",
   "license": "MIT",
-  "main": "./dist/main.js",
-  "module": "./dist/main.mjs",
+  "main": "./dist/main.cjs.js",
+  "module": "./dist/main.es.js",
   "typings": "./dist/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/main.mjs",
-      "require": "./dist/main.js"
+      "import": "./dist/main.es.js",
+      "require": "./dist/main.cjs.js"
     }
   },
   "private": false,

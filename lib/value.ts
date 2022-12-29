@@ -1,10 +1,7 @@
 ﻿import { subscribe } from './subscribe';
 import { Rx } from './rx';
 
-const syncValue = Symbol('snapshot');
-
 export class Value<T> implements Rx.Stateful<T> {
-  // readonly dependents: Dependent<T>[] = [];
   readonly observers?: Rx.StateObserver<T>[];
   readonly operators: Rx.StateOperator<T>[] = [];
   dirty = false;
@@ -32,10 +29,7 @@ export class Value<T> implements Rx.Stateful<T> {
     const { observers, snapshot } = this;
     if (observers !== undefined && snapshot !== undefined)
       for (const obs of observers as any) {
-        if (obs[syncValue] !== snapshot) {
-          obs[syncValue] = snapshot;
-          obs.next(snapshot);
-        }
+        obs.next(snapshot);
       }
   }
 

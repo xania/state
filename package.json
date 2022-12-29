@@ -12,7 +12,6 @@
   },
   "private": false,
   "files": [
-    "types",
     "dist"
   ],
   "engines": {

@@ -33,6 +33,6 @@
   "author": "Ibrahim ben Salah",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xania/rx.git"
+    "url": "git+https://github.com/xania/state.git"
   }
 }

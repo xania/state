@@ -8,5 +8,11 @@ export function subscribe<U, O extends Rx.NextObserver<U>>(
   if (snapshot !== undefined) {
     observer.next(snapshot);
   }
-  this.observers.push(observer);
+
+  const { observers } = this;
+  if (observers) {
+    observers.push(observer);
+  } else {
+    this.observers = [observer];
+  }
 }

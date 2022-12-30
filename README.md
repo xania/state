@@ -13,4 +13,5 @@ Is a javascript library for managing reactive state.
 #### Benchmark results
 
 it's blazingly fast
+
 ![benchmark results](./assets/benchmark-results.png)

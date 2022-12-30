@@ -1,5 +1,5 @@
-﻿import { Rx } from './rx';
-import { Value } from './value';
+﻿import { MapOperator } from './map';
+import { Rx } from './rx';
 
 const syncValue = Symbol('snapshot');
 
@@ -53,26 +53,37 @@ export function combineLatest<TArgs extends [...Rx.Stateful<any>[]]>(
   );
   root.push(target);
 
-  for (let i = 0; i < sources.length; i++) {
+  for (let i = 0, len = sources.length; i < len; i++) {
     const source = sources[i];
     snapshot[i] = source.snapshot;
-    source.operators.push({
+
+    const mergeop: Rx.MergeOperator<any, any> = {
       type: Rx.StateOperatorType.Merge,
       property: i,
       snapshot,
       target,
-    });
+    };
+    const { operators } = source;
+    if (operators) {
+      operators.push(mergeop);
+    } else {
+      source.operators = [mergeop];
+    }
   }
 
   return target;
 }
 
 class CombineState<T extends [...any[]]> implements Rx.Stateful<T> {
-  observers: Rx.NextObserver<T>[] = [];
-  operators: Rx.StateOperator<T>[] = [];
+  observers?: Rx.NextObserver<T>[];
+  operators?: Rx.StateOperator<T>[];
   dirty = false;
 
   constructor(public root: Rx.Root, public snapshot: T) {}
+
+  get() {
+    return this.snapshot;
+  }
 
   map<U>(f: (x: T) => U) {
     const { snapshot, root } = this;
@@ -83,19 +94,23 @@ class CombineState<T extends [...any[]]> implements Rx.Stateful<T> {
         mappedValue = f(snapshot);
       }
     }
-    const target = new Value(root, mappedValue);
-    root.push(target);
-    this.operators.push({
-      type: Rx.StateOperatorType.Map,
-      func: f,
-      target: target,
-    });
-    return target;
+
+    const operator = new MapOperator(root, f, mappedValue);
+    root.push(operator);
+
+    const { operators } = this;
+    if (operators) {
+      operators.push(operator);
+    } else {
+      this.operators = [operator];
+    }
+
+    return operator;
   }
 
   notify() {
     const { observers, snapshot } = this;
-    if (snapshot.every((x) => x !== undefined)) {
+    if (observers && snapshot.every((x) => x !== undefined)) {
       for (const obs of observers as any) {
         if (obs[syncValue] !== snapshot) {
           obs[syncValue] = snapshot;

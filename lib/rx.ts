@@ -8,8 +8,10 @@
     snapshot?: T;
     dirty: boolean;
     observers?: NextObserver<T>[];
-    operators: StateOperator<T>[];
+    operators?: StateOperator<T>[];
+    map<U>(func: (t: T) => U): Stateful<U>;
     notify(): void;
+    get(): T | undefined;
   }
 
   export type UnwrapState<T> = T extends Stateful<infer U> ? U : never;
@@ -26,14 +28,14 @@
     Merge,
   }
 
-  interface MergeOperator<T, U = any> {
+  export interface MergeOperator<T, U = any> {
     type: StateOperatorType.Merge;
     property: keyof U extends T ? keyof U : never;
     snapshot: U;
     target: Rx.Stateful<U>;
   }
 
-  interface MapOperator<T, U = any> {
+  export interface MapOperator<T, U = any> {
     type: StateOperatorType.Map;
     func: (t: T) => U;
     target: Stateful<U>;

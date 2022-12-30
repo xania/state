@@ -29,10 +29,9 @@ export class State<T> extends Value<T> {
       curr.dirty = false;
       if (curr.observers) curr.notify();
 
-      const { snapshot } = curr;
+      const { snapshot, operators } = curr;
 
-      if (snapshot !== undefined) {
-        const { operators } = curr;
+      if (snapshot !== undefined && operators !== undefined) {
         for (let o = 0, olen = operators.length; o < olen; o++) {
           const operator = operators[o];
           switch (operator.type) {

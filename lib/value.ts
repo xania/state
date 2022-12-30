@@ -1,5 +1,7 @@
 ﻿import { subscribe } from './subscribe';
 import { Rx } from './rx';
+import { notify } from './notify';
+import { map } from './map';
 
 export class Value<T> implements Rx.Stateful<T> {
   readonly observers?: Rx.StateObserver<T>[];
@@ -12,26 +14,7 @@ export class Value<T> implements Rx.Stateful<T> {
     return this.snapshot;
   }
 
-  map<U>(f: (x: T) => U) {
-    const { snapshot, root } = this;
-    const mappedValue = snapshot === undefined ? undefined : f(snapshot);
-    const m = new Value(root, mappedValue);
-    this.root.push(m);
-    this.operators.push({
-      type: Rx.StateOperatorType.Map,
-      func: f,
-      target: m,
-    });
-    return m;
-  }
-
-  notify() {
-    const { observers, snapshot } = this;
-    if (observers !== undefined && snapshot !== undefined)
-      for (const obs of observers as any) {
-        obs.next(snapshot);
-      }
-  }
-
+  map = map;
+  notify = notify;
   subscribe = subscribe;
 }

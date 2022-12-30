@@ -1,7 +1,7 @@
 ﻿import { subscribe } from './subscribe';
 import { Rx } from './rx';
 import { notify } from './notify';
-import { map } from './map';
+import { map, MapFunction } from './map';
 
 export class Value<T> implements Rx.Stateful<T> {
   readonly observers?: Rx.StateObserver<T>[];
@@ -14,7 +14,7 @@ export class Value<T> implements Rx.Stateful<T> {
     return this.snapshot;
   }
 
-  map = map;
+  map: MapFunction<T> = map;
   notify = notify;
   subscribe = subscribe;
 }

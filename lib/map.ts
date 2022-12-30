@@ -26,6 +26,11 @@ export class MapOperator<T, U> implements Rx.Stateful<U>, Rx.MapOperator<T, U> {
   map = map;
 }
 
+export type MapFunction<T> = <U>(
+  this: Rx.Stateful<T>,
+  f: (x: T) => U
+) => Rx.Stateful<U>;
+
 export function map<T, U>(
   this: Rx.Stateful<T>,
   f: (x: T) => U

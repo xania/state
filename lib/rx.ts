@@ -20,7 +20,9 @@
   export type StateOperator<T> =
     | MapOperator<T>
     | MergeOperator<T>
-    | ApplyOperator<any>;
+    | ApplyOperator<any>
+    | PropertyOperator<T, keyof T>;
+
   export enum StateOperatorType {
     Map,
     Apply,
@@ -47,9 +49,9 @@
     target: Stateful<U>;
   }
 
-  interface PropertyOperator<T, K extends keyof T> {
+  export interface PropertyOperator<T, K extends keyof T> {
     type: StateOperatorType.Property;
-    property: K;
+    name: K;
     target: Stateful<T[K]>;
   }
 

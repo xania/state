@@ -1,9 +1,9 @@
-﻿import { Rx } from './rx';
+﻿import { release, rent } from './array-pool';
+import { Rx } from './rx';
 import { Value } from './value';
 
-const arrayPool: Rx.Stateful<any>[][] = [];
-
 export class State<T> extends Value<T> {
+  public dependents?: Rx.Stateful<any>[];
   constructor(public snapshot?: T) {
     super(snapshot);
   }
@@ -17,19 +17,18 @@ export class State<T> extends Value<T> {
       this.dirty = true;
     }
 
-    const stack: Rx.Stateful<any>[] =
-      arrayPool.length > 0 ? arrayPool.pop()! : new Array();
+    const stack: Rx.Stateful<any>[] = rent();
 
-    let length = 0;
+    let stackLen = 0;
     if (dependents) {
       for (let i = dependents.length - 1; i >= 0; i--) {
-        stack[length++] = dependents[i];
+        stack[stackLen++] = dependents[i];
       }
     }
-    stack[length++] = this as Rx.Stateful<any>;
+    stack[stackLen++] = this as Rx.Stateful<any>;
 
-    while (length--) {
-      const curr = stack[length]!;
+    while (stackLen--) {
+      const curr = stack[stackLen]!;
       // const curr = graph[i++];
 
       if (!curr.dirty) {
@@ -56,16 +55,18 @@ export class State<T> extends Value<T> {
             case Rx.StateOperatorType.Bind:
               const bindValue = operator.func(snapshot);
               const bindTarget = operator.target;
+              stack[stackLen++] = bindTarget;
               if (bindTarget.snapshot !== bindValue) {
                 bindTarget.snapshot = bindValue;
                 bindTarget.dirty = true;
                 const g = bindTarget.dependents;
-                if (g) {
+                if (g instanceof Array) {
                   for (let i = g.length - 1; i >= 0; i--) {
-                    stack[length++] = g[i];
+                    stack[stackLen++] = g[i];
                   }
+                } else {
+                  throw Error('bind is not implemented');
                 }
-                stack[length++] = bindTarget;
               }
               break;
             case Rx.StateOperatorType.Merge:
@@ -81,7 +82,7 @@ export class State<T> extends Value<T> {
       }
     }
 
-    arrayPool.push(stack);
+    release(stack);
   }
 }
 

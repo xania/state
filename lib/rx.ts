@@ -1,8 +1,6 @@
 ﻿export namespace Rx {
   export interface Dependents {
     push(state: Stateful<any>): void;
-    readonly length: number;
-    readonly [n: number]: Stateful<any>;
   }
 
   export interface Stateful<T> {

@@ -1,4 +1,5 @@
-﻿import { MapOperator } from './map';
+﻿import { rent, release } from './array-pool';
+import { MapOperator } from './map';
 import { prop } from './prop';
 import { Rx } from './rx';
 import { subscribe } from './subscribe';
@@ -6,14 +7,10 @@ import { Value } from './value';
 
 const syncValue = Symbol('snapshot');
 
-class CombinedRoot implements Rx.Dependents {
-  length: number = 0;
+class CombinedDependents implements Rx.Dependents {
   constructor(public roots: Rx.Dependents[]) {}
   [n: number]: Rx.Stateful<any>;
   push(state: Rx.Stateful<any>) {
-    this[this.length] = state;
-    this.length++;
-
     const { roots } = this;
 
     let length = roots.length;
@@ -25,34 +22,56 @@ class CombinedRoot implements Rx.Dependents {
 
 const voidRoot: Rx.Dependents = {
   push() {},
-  length: 0,
 };
 
-function createRoot(sources: Rx.Stateful<any>[]) {
-  const roots: Rx.Dependents[] = [];
+function combineDependents(sources: Rx.Stateful<any>[]) {
+  const slen = sources.length;
 
-  for (const src of sources) {
-    if (src.dependents === undefined) {
-      roots.push((src.dependents = []));
-    } else {
-      const srcRoot: Rx.Dependents = src.dependents;
+  const roots = rent();
+  let rootsLength = 0;
 
-      if (srcRoot instanceof CombinedRoot) {
-        for (const curr of srcRoot.roots) {
-          if (!roots.includes(curr)) {
-            roots.push(curr);
+  for (let i = 0; i < slen; i++) {
+    const source = sources[i];
+    let dependents = source.dependents;
+    if (!dependents) {
+      source.dependents = dependents = [];
+      roots[rootsLength++] = dependents;
+    } else if (dependents instanceof CombinedDependents) {
+      const sourceRoots = dependents.roots;
+      for (let s = 0, srLen = sourceRoots.length; s < srLen; s++) {
+        const srcRoot = sourceRoots[s];
+        let included = false;
+        for (let i = 0; i < rootsLength; i++) {
+          if (roots[i] === srcRoot) {
+            included = true;
+            break;
           }
         }
-      } else if (!roots.includes(srcRoot)) {
-        roots.push(srcRoot);
+        if (!included) {
+          roots[rootsLength++] = srcRoot;
+        }
+      }
+    } else {
+      let included = false;
+      for (let i = 0; i < rootsLength; i++) {
+        if (roots[i] === dependents) {
+          included = true;
+          break;
+        }
+      }
+      if (!included) {
+        roots[rootsLength++] = dependents;
       }
     }
   }
 
-  if (roots.length === 0) return voidRoot;
-  if (roots.length === 1) return roots[0];
+  if (rootsLength === 0) return voidRoot;
+  if (rootsLength === 1) return roots[0];
 
-  return new CombinedRoot(roots);
+  const clone = roots.slice(0, rootsLength);
+  release(roots);
+
+  return new CombinedDependents(clone);
 }
 
 type UnwrapState<T> = T extends Value<infer U> ? U : T;
@@ -63,9 +82,12 @@ export function combineLatest<TArgs extends [...Rx.Stateful<any>[]]>(
 ): Rx.Stateful<UnwrapStates<TArgs>> {
   const snapshot: any[] = [];
 
-  const graph = createRoot(sources);
-  const target = new CombineState<UnwrapStates<TArgs>>(graph, snapshot as any);
-  graph.push(target);
+  const dependents = combineDependents(sources);
+  const target = new CombinedState<UnwrapStates<TArgs>>(
+    dependents,
+    snapshot as any
+  );
+  dependents.push(target);
 
   for (let i = 0, len = sources.length; i < len; i++) {
     const source = sources[i];
@@ -88,7 +110,7 @@ export function combineLatest<TArgs extends [...Rx.Stateful<any>[]]>(
   return target;
 }
 
-class CombineState<T extends [...any[]]> implements Rx.Stateful<T> {
+class CombinedState<T extends [...any[]]> implements Rx.Stateful<T> {
   observers?: Rx.NextObserver<T>[];
   operators?: Rx.StateOperator<T>[];
   dirty = false;

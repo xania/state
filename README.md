@@ -1,6 +1,8 @@
 ﻿### State ![beta](./assets/beta.png)
 
-Is a javascript library for managing reactive state.
+Is blazingly fast javascript library for managing reactive state.
+
+![benchmark results](./assets/benchmark-results-2.png)
 
 [![diamond problem](./assets/diamond.png)](https://stackblitz.com/edit/vitejs-vite-cxno2b?file=src%2FApp.tsx)
 
@@ -8,10 +10,6 @@ Is a javascript library for managing reactive state.
 
 - monadic state (map, bind)
 - topological sorting
-- asynchronuous data
+- asynchronuous data (in progress)
 
 #### Benchmark results
-
-it's blazingly fast
-
-![benchmark results](./assets/benchmark-results-2.png)

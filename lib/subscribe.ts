@@ -3,7 +3,7 @@
 export function subscribe<U, O extends Rx.NextObserver<U>>(
   this: Rx.Stateful<U>,
   observer: O
-) {
+): Rx.Subscription {
   const value = this;
   const { snapshot } = value;
 

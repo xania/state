@@ -1,0 +1,71 @@
+﻿import { Rx } from './rx';
+import { Value } from './value';
+
+const id = <T>(x: T) => x;
+
+export function bind<T, U>(
+  this: Rx.Stateful<T>,
+  binder: (t: T) => Rx.Stateful<U>
+): Rx.Stateful<U> {
+  const { snapshot } = this;
+  // Create new graph root so that
+  // - The target is disconnected from bound dependencies
+  // - The dependencies of target are preserved in
+  //   this graph independent of changes in the dependencies
+  const target = new Value<U>();
+
+  const connectOp = {
+    type: Rx.StateOperatorType.Bind,
+    func: id,
+    target,
+  } as Rx.BindOperator<U>;
+
+  const bindOp = {
+    prevState: undefined as Rx.Stateful<U> | undefined | null,
+    type: Rx.StateOperatorType.Bind,
+    func(x: T): U {
+      const boundState = binder(x);
+      const { prevState } = this;
+      if (prevState !== boundState) {
+        if (prevState) {
+          removeOperation(prevState, connectOp);
+        }
+        if (boundState) {
+          addOperation(boundState, connectOp);
+        }
+        this.prevState = boundState;
+        return boundState?.snapshot as U;
+      } else {
+        return prevState?.snapshot as U;
+      }
+    },
+    target,
+  };
+
+  if (snapshot) {
+    const init = bindOp.func(snapshot);
+    if (init !== undefined) {
+      target.snapshot = init;
+    }
+  }
+
+  addOperation(this, bindOp as Rx.StateOperator<T>);
+  return target;
+}
+
+function removeOperation<T>(state: Rx.Stateful<T>, op: Rx.StateOperator<T>) {
+  const { operators } = state;
+  if (operators) {
+    const idx = operators.indexOf(op);
+    operators.splice(idx, 1);
+  }
+}
+
+function addOperation<T>(state: Rx.Stateful<T>, op: Rx.StateOperator<T>) {
+  const { operators } = state;
+  if (operators) {
+    operators.push(op);
+  } else {
+    state.operators = [op];
+  }
+}

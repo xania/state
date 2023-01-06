@@ -1,10 +1,12 @@
 ﻿export namespace Rx {
-  export interface Root {
+  export interface Dependents {
     push(state: Stateful<any>): void;
+    readonly length: number;
+    readonly [n: number]: Stateful<any>;
   }
 
   export interface Stateful<T> {
-    root: Root;
+    dependents?: Dependents;
     snapshot?: T;
     dirty: boolean;
     observers?: NextObserver<T>[];
@@ -12,20 +14,23 @@
     map<U>(func: (t: T) => U): Stateful<U>;
     notify(): void;
     get(): T | undefined;
+    subscribe<U, O extends NextObserver<U>>(
+      this: Rx.Stateful<U>,
+      observer: O
+    ): Subscription;
   }
-
-  export type UnwrapState<T> = T extends Stateful<infer U> ? U : never;
-  export type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
 
   export type StateOperator<T> =
     | MapOperator<T>
     | MergeOperator<T>
-    | ApplyOperator<any>
-    | PropertyOperator<T, keyof T>;
+    | ConnectOperator<T>
+    | PropertyOperator<T, keyof T>
+    | BindOperator<T>;
 
   export enum StateOperatorType {
     Map,
-    Apply,
+    Bind,
+    Connect,
     Property,
     Merge,
   }
@@ -43,10 +48,15 @@
     target: Stateful<U>;
   }
 
-  interface ApplyOperator<T extends any[], U = any> {
-    type: StateOperatorType.Apply;
-    func: (...t: T) => U;
+  export interface BindOperator<T, U = any> {
+    type: StateOperatorType.Bind;
+    func: (t: T) => U;
     target: Stateful<U>;
+  }
+
+  export interface ConnectOperator<T> {
+    type: StateOperatorType.Connect;
+    target: Stateful<T>;
   }
 
   export interface PropertyOperator<T, K extends keyof T> {
@@ -61,5 +71,9 @@
     next: (value: T) => void;
     error?: (err: any) => void;
     complete?: () => void;
+  }
+
+  export interface Subscription {
+    unsubscribe(): void;
   }
 }

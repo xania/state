@@ -1,11 +1,19 @@
 ﻿import { MapOperator } from './map';
+import { prop } from './prop';
 import { Rx } from './rx';
+import { subscribe } from './subscribe';
+import { Value } from './value';
 
 const syncValue = Symbol('snapshot');
 
-class CombinedRoot implements Rx.Root {
-  constructor(public roots: Rx.Root[]) {}
+class CombinedRoot implements Rx.Dependents {
+  length: number = 0;
+  constructor(public roots: Rx.Dependents[]) {}
+  [n: number]: Rx.Stateful<any>;
   push(state: Rx.Stateful<any>) {
+    this[this.length] = state;
+    this.length++;
+
     const { roots } = this;
 
     let length = roots.length;
@@ -15,23 +23,29 @@ class CombinedRoot implements Rx.Root {
   }
 }
 
-const voidRoot: Rx.Root = {
+const voidRoot: Rx.Dependents = {
   push() {},
+  length: 0,
 };
 
 function createRoot(sources: Rx.Stateful<any>[]) {
-  const roots: Rx.Root[] = [];
+  const roots: Rx.Dependents[] = [];
 
   for (const src of sources) {
-    const srcRoot = src.root;
-    if (srcRoot instanceof CombinedRoot) {
-      for (const curr of srcRoot.roots) {
-        if (!roots.includes(curr)) {
-          roots.push(curr);
+    if (src.dependents === undefined) {
+      roots.push((src.dependents = []));
+    } else {
+      const srcRoot: Rx.Dependents = src.dependents;
+
+      if (srcRoot instanceof CombinedRoot) {
+        for (const curr of srcRoot.roots) {
+          if (!roots.includes(curr)) {
+            roots.push(curr);
+          }
         }
+      } else if (!roots.includes(srcRoot)) {
+        roots.push(srcRoot);
       }
-    } else if (!roots.includes(srcRoot)) {
-      roots.push(srcRoot);
     }
   }
 
@@ -41,17 +55,17 @@ function createRoot(sources: Rx.Stateful<any>[]) {
   return new CombinedRoot(roots);
 }
 
+type UnwrapState<T> = T extends Value<infer U> ? U : T;
+type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
+
 export function combineLatest<TArgs extends [...Rx.Stateful<any>[]]>(
   sources: [...TArgs]
-) {
+): Rx.Stateful<UnwrapStates<TArgs>> {
   const snapshot: any[] = [];
 
-  const root = createRoot(sources);
-  const target = new CombineState<Rx.UnwrapStates<TArgs>>(
-    root,
-    snapshot as any
-  );
-  root.push(target);
+  const graph = createRoot(sources);
+  const target = new CombineState<UnwrapStates<TArgs>>(graph, snapshot as any);
+  graph.push(target);
 
   for (let i = 0, len = sources.length; i < len; i++) {
     const source = sources[i];
@@ -79,14 +93,17 @@ class CombineState<T extends [...any[]]> implements Rx.Stateful<T> {
   operators?: Rx.StateOperator<T>[];
   dirty = false;
 
-  constructor(public root: Rx.Root, public snapshot: T) {}
+  constructor(public dependents: Rx.Dependents, public snapshot: T) {}
 
   get() {
     return this.snapshot;
   }
 
+  prop = prop;
+  subscribe = subscribe;
+
   map<U>(f: (x: T) => U) {
-    const { snapshot, root } = this;
+    const { snapshot } = this;
     let mappedValue = undefined;
     for (let i = 0, len = snapshot.length; i < len; i++) {
       if (snapshot[i] === undefined) break;
@@ -95,8 +112,9 @@ class CombineState<T extends [...any[]]> implements Rx.Stateful<T> {
       }
     }
 
-    const operator = new MapOperator(root, f, mappedValue);
-    root.push(operator);
+    const dependents: Rx.Dependents = this.dependents ?? (this.dependents = []);
+    const operator: any = new MapOperator(dependents, f, mappedValue);
+    dependents.push(operator);
 
     const { operators } = this;
     if (operators) {

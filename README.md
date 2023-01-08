@@ -25,7 +25,7 @@ const d = a.bind(x => x % 2 === ? b : c);
 
 _@xania/state_ is intended to be complementary to RxJS and is especially an alternative to BehaviorSubject and it's main goal to provide reactivity for the View library. RxJS is on the other hand better suited for handling events coming from view.
 
-<blockquote>State  >  JSX  >  RxJS  >  State</blockquote>
+![state flow](./assets/state-flow.png);
 
 - Compatibility with RxJS, RxJS for events and scheduling, and xania for fine grained state.
 - Side effects are hidden
@@ -34,7 +34,19 @@ _@xania/state_ is intended to be complementary to RxJS and is especially an alte
 
 #### fine-grained state
 
-In realworld, a state is not nescassary isolated from other parts of the state.
+In realworld, a state is practically never isolated from other parts of the state. e.g. `firstName` can be represented by a state object but it is also part of the `Employee` state and the two and all there observers needs to be in sync. Most used pattern for updating `firstName` in other libraries use a coarse grained approach where the whole person updates is updates. Biggest disadvantage is that the handling of `firstName` gets entangled with the structure of `Person`, which also means that this affected by any changes in structure.
+
+_@xania/state_ provides a different pattern using fine-grained approach. _@xania/state_ provides a `prop` method to create an isolated state object and uses (internal) operators to keep the parent en it's property in sync.
+
+```typescript
+const person = new State({
+  firstName: 'Ibrahim',
+});
+const firstName = person.prop('firstName');
+firstName.set('Ramy');
+
+console.log(person.get().firstName); // prints 'Ramy'
+```
 
 1. we can create rxjs observables from state objects
 

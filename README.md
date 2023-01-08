@@ -25,7 +25,7 @@ const d = a.bind(x => x % 2 === ? b : c);
 
 _@xania/state_ is intended to be complementary to RxJS and is especially an alternative to BehaviorSubject and it's main goal to provide reactivity for the View library. RxJS is on the other hand better suited for handling events coming from view, e.g. for debounce, async, etc...
 
-![state flow](./assets/state-flow.png);
+![state flow](./assets/state-flow2.png);
 
 - Compatibility with RxJS, RxJS for events and scheduling, and xania for fine grained state.
 - Side effects are hidden

@@ -74,7 +74,7 @@ function combineDependents(sources: Rx.Stateful<any>[]) {
   return new CombinedDependents(clone);
 }
 
-type UnwrapState<T> = T extends Value<infer U> ? U : never;
+type UnwrapState<T> = T extends Rx.Stateful<infer U> ? U : never;
 type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
 
 export function combineLatest<TArgs extends [...Rx.Stateful<any>[]]>(

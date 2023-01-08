@@ -1,7 +1,7 @@
 ﻿import { subscribe } from './subscribe';
 import { Rx } from './rx';
 import { notify } from './notify';
-import { map } from './map';
+import { map, MapFunction } from './map';
 import { prop, PropertyFunction } from './prop';
 import { bind } from './bind';
 
@@ -19,7 +19,7 @@ export class Value<T> implements Rx.Stateful<T> {
     return this.snapshot;
   }
 
-  map = map;
+  map: MapFunction<T> = map;
 
   prop: PropertyFunction<T> = prop;
   notify = notify;

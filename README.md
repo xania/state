@@ -103,18 +103,8 @@ firstName.subscribe({
 
 // external mutation
 data.firstName = 'Ramy';
-sync(person); // prints
+sync(person);
 // console output: Hello, Ramy
-```
-
-```typescript
-const root = new State(1);
-const derived = root.map((x) => x * 2);
-root.set(2);
-
-derived.subscribe({
-  next()
-});
 ```
 
 To maintain

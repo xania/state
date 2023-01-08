@@ -1,7 +1,7 @@
 {
   "include": ["lib", "test.ts"],
   "compilerOptions": {
-    "outDir": "dist/es2015",
+    "declarationDir": "dist/es2015",
     "module": "ES2015",
     "lib": ["dom", "ESNext", "ES2018.AsyncIterable"],
     "importHelpers": true,

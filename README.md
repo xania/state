@@ -4,7 +4,7 @@
 
 Is blazingly fast javascript library for managing reactive state.
 
-![benchmark results](./assets/benchmark-results-2.png)
+![benchmark results](./assets/benchmark-results.png)
 
 #### Getting started
 

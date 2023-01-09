@@ -1,4 +1,5 @@
-﻿import { Rx } from './rx';
+﻿import { addDependent, removeDependent } from './map';
+import { Rx } from './rx';
 import { Value } from './value';
 
 const id = <T>(x: T) => x;
@@ -14,6 +15,8 @@ export function bind<T, U>(
   //   this graph independent of changes in the dependencies
   const target = new Value<U>();
 
+  addDependent(this, target);
+
   const connectOp = {
     type: Rx.StateOperatorType.Bind,
     func: id,
@@ -28,9 +31,11 @@ export function bind<T, U>(
       const { prevState } = this;
       if (prevState !== boundState) {
         if (prevState) {
+          removeDependent(prevState, this.target);
           removeOperation(prevState, connectOp);
         }
         if (boundState) {
+          addDependent(boundState, this.target, false);
           addOperation(boundState, connectOp);
         }
         this.prevState = boundState;

@@ -8,7 +8,7 @@ import { bind } from './bind';
 export class Value<T> implements Rx.Stateful<T> {
   readonly observers?: Rx.StateObserver<T>[];
   readonly operators: Rx.StateOperator<T>[] = [];
-  public dependents?: Rx.Stateful<any>[];
+  public dependent?: Rx.Stateful<any>;
   dirty = false;
 
   constructor(public snapshot?: T) {

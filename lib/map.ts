@@ -11,11 +11,7 @@ export class MapOperator<T, U> implements Rx.Stateful<U>, Rx.MapOperator<T, U> {
   observers?: Rx.NextObserver<U>[] | undefined;
   operators?: Rx.StateOperator<U>[];
 
-  constructor(
-    public dependents: Rx.Dependents,
-    public func: (t: T) => U,
-    public snapshot?: U | undefined
-  ) {
+  constructor(public func: (t: T) => U, public snapshot?: U | undefined) {
     this.target = this;
   }
 
@@ -40,9 +36,9 @@ export function map<T, U>(
   const { snapshot } = this;
   const mappedValue = snapshot === undefined ? undefined : f(snapshot);
 
-  const dependents: Rx.Dependents = this.dependents ?? (this.dependents = []);
-  const mop: any = new MapOperator(dependents, f, mappedValue);
-  dependents.push(mop);
+  const mop: any = new MapOperator(f, mappedValue);
+  addDependent(this, mop);
+  // this.dependent = mop;
   const { operators } = this;
   if (operators) {
     operators.push(mop);
@@ -50,4 +46,43 @@ export function map<T, U>(
     this.operators = [mop];
   }
   return mop;
+}
+
+export function addDependent(
+  source: Rx.Stateful,
+  dependent: Rx.Stateful,
+  checkCircular: boolean = true
+): boolean {
+  if (source === dependent) return false;
+
+  if (checkCircular) {
+    let d: Rx.Stateful | undefined = dependent;
+    do {
+      if (d === source) throw Error('circular');
+      d = d.dependent;
+    } while (d);
+  }
+
+  while (source.dependent) {
+    source = source.dependent;
+  }
+
+  if (source === dependent) return false;
+  source.dependent = dependent;
+  return true;
+}
+
+export function removeDependent(
+  source: Rx.Stateful,
+  dependent: Rx.Stateful
+): boolean {
+  while (source.dependent) {
+    if (source.dependent === dependent) {
+      source.dependent = dependent.dependent;
+
+      return true;
+    }
+    source = source.dependent;
+  }
+  return false;
 }

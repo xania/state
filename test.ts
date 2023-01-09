@@ -33,16 +33,3 @@ const combined = combineLatest([b, c]).map(([x, y]) => `${x} + ${y}`);
 console.log(combined.get());
 b.set('foo');
 console.log(combined.get());
-
-export function App() {
-  const count = new State<number>();
-  const double = count.map((x) => x * 2);
-  const triple = count.map((x) => x * 3);
-  const quadruple = double.map((x) => x * 2);
-
-  const sum = combineLatest([count, triple, quadruple]).map((values) =>
-    values.reduce((x, y) => x + y, 0)
-  );
-
-  console.log(sum);
-}

@@ -1,10 +1,6 @@
 ﻿export namespace Rx {
-  export interface Dependents {
-    push(state: Stateful<any>): void;
-  }
-
-  export interface Stateful<T> {
-    dependents?: Dependents;
+  export interface Stateful<T = any> {
+    dependent?: Stateful;
     snapshot?: T;
     dirty: boolean;
     observers?: NextObserver<T>[];

@@ -23,7 +23,7 @@
   "scripts": {
     "build": "npx vite build",
     "clean": "npx rimraf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm version patch && npm run build"
   },
   "prettier": {
     "printWidth": 80,

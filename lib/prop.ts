@@ -1,4 +1,5 @@
-﻿import { Rx } from './rx';
+﻿import { addDependent } from './map';
+import { Rx } from './rx';
 import { State } from './state';
 
 export class PropertyOperator<T, K extends keyof T = keyof T>
@@ -22,8 +23,7 @@ export function prop<T, K extends keyof T>(
   const mappedValue =
     snapshot === undefined || snapshot === null ? undefined : snapshot[name];
   const target: any = new State<T[K]>(mappedValue);
-  const dependents: Rx.Dependents = this.dependents ?? (this.dependents = []);
-  dependents.push(target);
+  addDependent(this, target);
   const mop = new PropertyOperator<T>(name, target);
   const { operators } = this;
   if (operators) {

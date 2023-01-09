@@ -1,15 +1,13 @@
-﻿import { release, rent } from './array-pool';
-import { Rx } from './rx';
+﻿import { Rx } from './rx';
 import { Value } from './value';
 
 export class State<T> extends Value<T> {
-  public dependents?: Rx.Stateful<any>[];
   constructor(public snapshot?: T) {
     super(snapshot);
   }
 
-  set(input: T | Updater<T>) {
-    const { snapshot, dependents } = this;
+  set(input: T | Updater<T>, autoSync: boolean = true) {
+    const { snapshot } = this;
     const newValue = input instanceof Function ? input(snapshot) : input;
 
     if (newValue !== snapshot) {
@@ -17,24 +15,16 @@ export class State<T> extends Value<T> {
       this.dirty = true;
     }
 
-    const stack: Rx.Stateful<any>[] = rent();
+    if (autoSync) sync(this);
+  }
+}
 
-    let stackLen = 0;
-    if (dependents) {
-      for (let i = dependents.length - 1; i >= 0; i--) {
-        stack[stackLen++] = dependents[i];
-      }
-    }
-    stack[stackLen++] = this as Rx.Stateful<any>;
+type Updater<T> = (t?: T) => undefined | T;
 
-    while (stackLen--) {
-      const curr = stack[stackLen]!;
-      // const curr = graph[i++];
-
-      if (!curr.dirty) {
-        continue;
-      }
-
+export function sync(state: Rx.Stateful) {
+  let curr: Rx.Stateful | undefined = state;
+  while (curr) {
+    if (curr.dirty) {
       curr.dirty = false;
       if (curr.observers) curr.notify();
 
@@ -55,18 +45,9 @@ export class State<T> extends Value<T> {
             case Rx.StateOperatorType.Bind:
               const bindValue = operator.func(snapshot);
               const bindTarget = operator.target;
-              stack[stackLen++] = bindTarget;
               if (bindTarget.snapshot !== bindValue) {
                 bindTarget.snapshot = bindValue;
                 bindTarget.dirty = true;
-                const g = bindTarget.dependents;
-                if (g instanceof Array) {
-                  for (let i = g.length - 1; i >= 0; i--) {
-                    stack[stackLen++] = g[i];
-                  }
-                } else {
-                  throw Error('bind is not implemented');
-                }
               }
               break;
             case Rx.StateOperatorType.Merge:
@@ -82,8 +63,6 @@ export class State<T> extends Value<T> {
       }
     }
 
-    release(stack);
+    curr = curr.dependent;
   }
 }
-
-type Updater<T> = (t?: T) => undefined | T;

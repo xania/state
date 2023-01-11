@@ -39,8 +39,6 @@
     "url": "git+https://github.com/xania/state.git"
   },
   "peepDependencies": {
-    "sass": "^1.57.1",
-    "tslib": "^2.4.1",
     "typescript": "^4.9.4"
   }
 }

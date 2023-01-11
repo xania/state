@@ -1,5 +1,8 @@
-﻿import { combineLatest } from './lib';
+﻿'use strict';
+
+import { combineLatest } from './lib';
 import { State } from './lib/state';
+import { from } from './lib/utils/from';
 
 const a = new State<number>();
 const b = new State('even');
@@ -33,3 +36,19 @@ const combined = combineLatest([b, c]).map(([x, y]) => `${x} + ${y}`);
 console.log(combined.get());
 b.set('foo');
 console.log(combined.get());
+
+// promise
+const resolved = from(Promise.resolve(2023));
+resolved.subscribe({
+  next(x) {
+    console.log('awaited', x);
+  },
+});
+
+a.bind((x) => Promise.resolve(x + 1)).subscribe({
+  next(value) {
+    console.log(value);
+  },
+});
+
+a.set(9876);

@@ -21,6 +21,7 @@
     "node": ">=10"
   },
   "scripts": {
+    "dev": "npx vite --watch build",
     "build": "npx vite build",
     "clean": "npx rimraf dist",
     "prepublishOnly": "npm run clean && npm version patch && npm run build"

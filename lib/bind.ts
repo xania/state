@@ -1,12 +1,13 @@
 ﻿import { addDependent, removeDependent } from './map';
 import { Rx } from './rx';
+import { from } from './utils/from';
 import { Value } from './value';
 
 const id = <T>(x: T) => x;
 
 export function bind<T, U>(
   this: Rx.Stateful<T>,
-  binder: (t: T) => Rx.Stateful<U>
+  binder: (t: T) => Rx.StateInput<U>
 ): Rx.Stateful<U> {
   const { snapshot } = this;
   // Create new graph root so that
@@ -27,7 +28,7 @@ export function bind<T, U>(
     prevState: undefined as Rx.Stateful<U> | undefined | null,
     type: Rx.StateOperatorType.Bind,
     func(x: T): U {
-      const boundState = binder(x);
+      const boundState = from(binder(x));
       const { prevState } = this;
       if (prevState !== boundState) {
         if (prevState) {

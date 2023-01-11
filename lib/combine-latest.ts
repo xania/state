@@ -1,18 +1,20 @@
-﻿import { addDependent, MapOperator } from './map';
+﻿import { bind } from './bind';
+import { addDependent, MapOperator } from './map';
 import { prop } from './prop';
 import { Rx } from './rx';
 import { subscribe } from './subscribe';
+import { from } from './utils/from';
 const syncValue = Symbol('snapshot');
 
 type UnwrapState<T> = T extends Rx.Stateful<infer U> ? U : never;
 type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
 
-export function combineLatest<TArgs extends [...Rx.Stateful<any>[]]>(
-  sources: [...TArgs]
+export function combineLatest<TArgs extends [...Rx.StateInput<any>[]]>(
+  args: [...TArgs]
 ): Rx.Stateful<UnwrapStates<TArgs>> {
   const snapshot: any[] = [];
-
   const target = new CombinedState<UnwrapStates<TArgs>>(snapshot as any);
+  const sources = args.map(from);
 
   for (const source of sources) {
     addDependent(source, target, false);
@@ -50,8 +52,10 @@ class CombinedState<T extends [...any[]]> implements Rx.Stateful<T> {
     return this.snapshot;
   }
 
-  prop = prop;
   subscribe = subscribe;
+
+  bind: Rx.Stateful<T>['bind'] = bind;
+  prop: Rx.Stateful<T>['prop'] = prop;
 
   map<U>(f: (x: T) => U) {
     const { snapshot } = this;

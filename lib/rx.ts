@@ -5,14 +5,16 @@
     dirty: boolean;
     observers?: NextObserver<T>[];
     operators?: StateOperator<T>[];
-    map<U>(func: (t: T) => U): Stateful<U>;
+    map<U>(f: (x: T) => U): Stateful<U>;
+    bind<U>(f: (t: T) => StateInput<U>): Stateful<U>;
+    prop<K extends keyof T>(name: K): Stateful<T[K]>;
+
     notify(): void;
     get(): T | undefined;
-    subscribe<U, O extends NextObserver<U>>(
-      this: Rx.Stateful<U>,
-      observer: O
-    ): Subscription;
+    subscribe(observer: NextObserver<T>): Subscription;
   }
+
+  export type StateInput<T> = Promise<T> | Stateful<T> | AsyncIterable<T>;
 
   export type StateOperator<T> =
     | MapOperator<T>

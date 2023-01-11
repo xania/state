@@ -1,4 +1,5 @@
-﻿import { notify } from './notify';
+﻿import { bind } from './bind';
+import { notify } from './notify';
 import { prop } from './prop';
 import { Rx } from './rx';
 import { subscribe } from './subscribe';
@@ -19,20 +20,13 @@ export class MapOperator<T, U> implements Rx.Stateful<U>, Rx.MapOperator<T, U> {
     return this.snapshot;
   }
   notify = notify;
-  subscribe = subscribe;
+  subscribe: Rx.Stateful<U>['subscribe'] = subscribe;
   map = map;
+  bind = bind;
   prop = prop;
 }
 
-export type MapFunction<T> = <U>(
-  this: Rx.Stateful<T>,
-  f: (x: T) => U
-) => Rx.Stateful<U>;
-
-export function map<T, U>(
-  this: Rx.Stateful<T>,
-  f: (x: T) => U
-): Rx.Stateful<U> {
+export function map<T, U>(this: Rx.Stateful<T>, f: (x: T) => U | Promise<U>) {
   const { snapshot } = this;
   const mappedValue = snapshot === undefined ? undefined : f(snapshot);
 

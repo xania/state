@@ -1,7 +1,7 @@
 ﻿import { Rx } from './rx';
 
-export function subscribe<U, O extends Rx.NextObserver<U>>(
-  this: Rx.Stateful<U>,
+export function subscribe<T, O extends Rx.NextObserver<T>>(
+  this: Rx.Stateful<T>,
   observer: O
 ): Rx.Subscription {
   const value = this;

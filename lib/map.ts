@@ -26,7 +26,7 @@ export class MapOperator<T, U> implements Rx.Stateful<U>, Rx.MapOperator<T, U> {
   prop = prop;
 }
 
-export function map<T, U>(this: Rx.Stateful<T>, f: (x: T) => U | Promise<U>) {
+export function map<T, U>(this: Rx.Stateful<T>, f: (x: T) => U) {
   const { snapshot } = this;
   const mappedValue = snapshot === undefined ? undefined : f(snapshot);
 

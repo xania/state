@@ -12,16 +12,14 @@ type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
 export function combineLatest<TArgs extends [...Rx.StateInput<any>[]]>(
   args: [...TArgs]
 ): Rx.Stateful<UnwrapStates<TArgs>> {
-  const snapshot: any[] = [];
+  const argsLen = args.length;
+  const snapshot: any[] = new Array(argsLen);
   const target = new CombinedState<UnwrapStates<TArgs>>(snapshot as any);
-  const sources = args.map(from);
 
-  for (const source of sources) {
+  for (let i = 0; i < argsLen; i++) {
+    const source = from(args[i]);
     addDependent(source, target, false);
-  }
 
-  for (let i = 0, len = sources.length; i < len; i++) {
-    const source = sources[i];
     snapshot[i] = source.snapshot;
 
     const mergeOp: Rx.MergeOperator<any, any> = {
@@ -46,14 +44,13 @@ class CombinedState<T extends [...any[]]> implements Rx.Stateful<T> {
   operators?: Rx.StateOperator<T>[];
   dirty = false;
 
-  constructor(public snapshot: T) {}
+  constructor(public readonly snapshot: T) {}
 
   get() {
     return this.snapshot;
   }
 
-  subscribe = subscribe;
-
+  subscribe: Rx.Stateful<T>['subscribe'] = subscribe;
   bind: Rx.Stateful<T>['bind'] = bind;
   prop: Rx.Stateful<T>['prop'] = prop;
 

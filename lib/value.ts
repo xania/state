@@ -11,10 +11,7 @@ export class Value<T> implements Rx.Stateful<T> {
   public dependent?: Rx.Stateful<any>;
   dirty = false;
 
-  constructor(
-    public snapshot?: T | undefined,
-    public subscribe: Rx.Stateful<T>['subscribe'] = _subscribe
-  ) {}
+  constructor(public snapshot?: T | undefined) {}
 
   get() {
     return this.snapshot;
@@ -25,23 +22,35 @@ export class Value<T> implements Rx.Stateful<T> {
   bind: Rx.Stateful<T>['bind'] = bind;
 
   notify: Rx.Stateful<T>['notify'] = notify;
+  subscribe: Rx.Stateful<T>['subscribe'] = _subscribe;
 
   [Symbol.asyncIterator] = (): AsyncIterator<T> => {
     const state = this;
     let subscription: Rx.Subscription | null = null;
-    function sub(resolver: (v: IteratorResult<T>) => void) {
-      if (subscription == null) {
-        if (state.snapshot !== undefined) resolver({ value: state.snapshot });
+
+    const pending: T[] = [];
+    let _resolver: null | ((next: { value: T }) => void) = null;
+
+    subscription = state.subscribe({
+      next(value: T) {
+        if (_resolver !== null && _resolver !== undefined) {
+          _resolver({ value });
+          // resolver of a Promise can only be used once
+          _resolver = null;
+        } else pending.push(value);
+      },
+    });
+
+    function sub(resolve: (v: IteratorResult<T>) => void) {
+      if (pending.length > 0) {
+        resolve({ value: pending.shift() as T });
+      } else {
+        _resolver = resolve;
       }
-      subscription = state.subscribe({
-        next(value: T) {
-          resolver({ value });
-        },
-      });
     }
     return {
       next() {
-        return new Promise(sub).then((v) => (subscription?.unsubscribe(), v));
+        return new Promise(sub);
       },
       return() {
         if (subscription) subscription.unsubscribe();

@@ -1,19 +1,14 @@
 ﻿import { addDependent, removeDependent } from './map';
 import { Rx } from './rx';
 import { from } from './utils/from';
+import { id } from './utils/id';
 import { Value } from './value';
-
-const id = <T>(x: T) => x;
 
 export function bind<T, U>(
   this: Rx.Stateful<T>,
   binder: (t: T) => Rx.StateInput<U>
 ): Rx.Stateful<U> {
   const { snapshot } = this;
-  // Create new graph root so that
-  // - The target is disconnected from bound dependencies
-  // - The dependencies of target are preserved in
-  //   this graph independent of changes in the dependencies
   const target = new Value<U>();
 
   addDependent(this, target);

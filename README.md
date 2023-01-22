@@ -6,6 +6,8 @@ Is blazingly fast javascript library for managing reactive state.
 
 ![benchmark results](./assets/benchmark-results.png)
 
+> [Visit the docs website to learn more about how to use @xania/state in your project.](https://xania.github.io/state)
+
 #### Getting started
 
 ```shell

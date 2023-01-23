@@ -14,7 +14,14 @@
     subscribe(observer: NextObserver<T>): Subscription;
   }
 
-  export type StateInput<T> = Promise<T> | Stateful<T> | AsyncIterable<T>;
+  export type Observable<T> = {
+    subscribe(observer: NextObserver<T>): Subscription;
+  };
+  export type StateInput<T> =
+    | Promise<T>
+    | Stateful<T>
+    | AsyncIterable<T>
+    | Observable<T>;
 
   export type StateOperator<T> =
     | MapOperator<T>

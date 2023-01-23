@@ -16,6 +16,9 @@ export class State<T> extends Value<T> {
     }
     scheduler?.schedule(this);
   };
+
+  // state can be used as observer
+  next = this.set;
 }
 
 type SyncScheduler = {

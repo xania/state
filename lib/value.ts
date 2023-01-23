@@ -11,7 +11,10 @@ export class Value<T> implements Rx.Stateful<T> {
   public dependent?: Rx.Stateful<any>;
   dirty = false;
 
-  constructor(public snapshot?: T | undefined) {}
+  constructor(
+    public snapshot?: T | undefined,
+    public subscribe: Rx.Stateful<T>['subscribe'] = _subscribe
+  ) {}
 
   get() {
     return this.snapshot;
@@ -22,7 +25,6 @@ export class Value<T> implements Rx.Stateful<T> {
   bind: Rx.Stateful<T>['bind'] = bind;
 
   notify: Rx.Stateful<T>['notify'] = notify;
-  subscribe: Rx.Stateful<T>['subscribe'] = _subscribe;
 
   [Symbol.asyncIterator] = (): AsyncIterator<T> => {
     const state = this;

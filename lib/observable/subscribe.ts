@@ -1,4 +1,4 @@
-﻿import { Rx } from './rx';
+﻿import { Rx } from '../rx';
 
 export function subscribe<T, O extends Rx.NextObserver<T>>(
   this: Rx.Stateful<T>,

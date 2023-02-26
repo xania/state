@@ -1,17 +1,17 @@
-﻿import { addDependent, removeDependent } from './map';
-import { Rx } from './rx';
-import { from } from './utils/from';
-import { id } from './utils/id';
-import { Value } from './value';
+﻿import { pushNode, removeNode } from '../graph';
+import { Rx } from '../rx';
+import { StateInput } from '../state-input';
+import { from } from '../utils/from';
+import { id } from '../utils/id';
 
-export function bind<T, U>(
-  this: Rx.Stateful<T>,
-  binder: (t: T) => Rx.StateInput<U>
-): Rx.Stateful<U> {
-  const { snapshot } = this;
-  const target = new Value<U>();
+export function bind<T, U, TTarget extends Rx.GraphNode>(
+  source: Rx.GraphNode<T>,
+  binder: (t: T) => StateInput<U>,
+  target: TTarget
+): TTarget {
+  const { snapshot } = source;
 
-  addDependent(this, target);
+  pushNode(source, target, false);
 
   const connectOp = {
     type: Rx.StateOperatorType.Bind,
@@ -20,18 +20,18 @@ export function bind<T, U>(
   } as Rx.BindOperator<U>;
 
   const bindOp = {
-    prevState: undefined as Rx.Stateful<U> | undefined | null,
+    prevState: undefined as Rx.GraphNode<U> | undefined | null,
     type: Rx.StateOperatorType.Bind,
     func(x: T): U {
-      const boundState = from(binder(x));
+      const boundState = from(binder(x) as any) as Rx.GraphNode<any>;
       const { prevState } = this;
       if (prevState !== boundState) {
         if (prevState) {
-          removeDependent(prevState, this.target);
+          removeNode(prevState, this.target);
           removeOperation(prevState, connectOp);
         }
         if (boundState) {
-          addDependent(boundState, this.target, false);
+          pushNode(boundState, this.target, false);
           addOperation(boundState, connectOp);
         }
         this.prevState = boundState;
@@ -50,11 +50,11 @@ export function bind<T, U>(
     }
   }
 
-  addOperation(this, bindOp as Rx.StateOperator<T>);
+  addOperation(source, bindOp as Rx.StateOperator<T>);
   return target;
 }
 
-function removeOperation<T>(state: Rx.Stateful<T>, op: Rx.StateOperator<T>) {
+function removeOperation<T>(state: Rx.GraphNode<T>, op: Rx.StateOperator<T>) {
   const { operators } = state;
   if (operators) {
     const idx = operators.indexOf(op);
@@ -62,7 +62,7 @@ function removeOperation<T>(state: Rx.Stateful<T>, op: Rx.StateOperator<T>) {
   }
 }
 
-function addOperation<T>(state: Rx.Stateful<T>, op: Rx.StateOperator<T>) {
+function addOperation<T>(state: Rx.GraphNode<T>, op: Rx.StateOperator<T>) {
   const { operators } = state;
   if (operators) {
     operators.push(op);

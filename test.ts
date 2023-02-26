@@ -1,7 +1,7 @@
 ﻿'use strict';
 
 import { combineLatest } from './lib';
-import { State } from './lib/state';
+import { State } from './lib/observable/state';
 import { from } from './lib/utils/from';
 
 const a = new State<number>();

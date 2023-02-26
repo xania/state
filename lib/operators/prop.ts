@@ -1,6 +1,6 @@
-﻿import { addDependent } from './map';
-import { Rx } from './rx';
-import { State } from './state';
+﻿import { Rx } from '../rx';
+import { State } from '../observable/state';
+import { pushNode } from '../graph';
 
 export class PropertyOperator<T, K extends keyof T = keyof T>
   implements Rx.PropertyOperator<T, K>
@@ -23,7 +23,7 @@ export function prop<T, K extends keyof T>(
   const mappedValue =
     snapshot === undefined || snapshot === null ? undefined : snapshot[name];
   const target: any = new State<T[K]>(mappedValue);
-  addDependent(this, target);
+  pushNode(this, target);
   const mop = new PropertyOperator<T>(name, target);
   const { operators } = this;
   if (operators) {

@@ -1,5 +1,4 @@
-﻿import { Rx } from '../rx';
-import { State } from '../state';
+﻿import { State } from './state';
 
 export function isAsyncIterable<T>(obj: any): obj is AsyncIterable<T> {
   return (
@@ -9,7 +8,7 @@ export function isAsyncIterable<T>(obj: any): obj is AsyncIterable<T> {
 
 export function fromAsyncIterable<T>(
   asyncIterable: AsyncIterable<T>
-): Rx.Stateful<T> {
+): State<T> {
   const target = new State<T>();
 
   iterableNext(asyncIterable[Symbol.asyncIterator]());

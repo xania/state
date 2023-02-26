@@ -1,5 +1,5 @@
 ﻿import type { Rx } from '../rx';
-import { State } from '../state';
+import { State } from '../observable/state';
 
 export function isObservable<T>(value: any): value is Rx.Observable<T> {
   return value && value.subscribe instanceof Function;

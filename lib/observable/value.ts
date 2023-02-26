@@ -1,9 +1,10 @@
 ﻿import { subscribe as _subscribe } from './subscribe';
-import { Rx } from './rx';
-import { notify } from './notify';
-import { map } from './map';
-import { prop } from './prop';
-import { bind } from './bind';
+import { Rx } from '../rx';
+import { MapOperator, pushOperator } from '../operators/map';
+import { prop } from '../operators/prop';
+import { bind } from '../operators/bind';
+import { pushNode } from '../graph';
+import type { StateInput } from '../state-input';
 
 export class Value<T> implements Rx.Stateful<T> {
   readonly observers?: Rx.StateObserver<T>[];
@@ -11,20 +12,27 @@ export class Value<T> implements Rx.Stateful<T> {
   public dependent?: Rx.Stateful<any>;
   dirty = false;
 
-  constructor(
-    public snapshot?: T | undefined,
-    public subscribe: Rx.Stateful<T>['subscribe'] = _subscribe
-  ) {}
+  constructor(public snapshot?: T | undefined, public subscribe = _subscribe) {}
 
-  get() {
+  get = () => {
     return this.snapshot;
+  };
+
+  map<U>(f: (x: T) => U) {
+    const { snapshot } = this;
+    const mapTarget = new Value<U>(
+      snapshot === undefined ? undefined : f(snapshot)
+    );
+    const mop: any = new MapOperator(f, mapTarget);
+    pushNode(this, mapTarget);
+    pushOperator(this, mop);
+    return mapTarget;
   }
 
-  map: Rx.Stateful<T>['map'] = map;
-  prop: Rx.Stateful<T>['prop'] = prop;
-  bind: Rx.Stateful<T>['bind'] = bind;
-
-  notify: Rx.Stateful<T>['notify'] = notify;
+  prop = prop;
+  bind<U>(binder: (t: T) => StateInput<U>) {
+    bind(this, binder, new Value<U>());
+  }
 
   [Symbol.asyncIterator] = (): AsyncIterator<T> => {
     const state = this;

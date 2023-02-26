@@ -1,7 +1,6 @@
-﻿import { Rx } from '../rx';
-import { State } from '../state';
+﻿import { State } from '../observable/state';
 
-export function fromPromise<T>(promise: Promise<T>): Rx.Stateful<T> {
+export function fromPromise<T>(promise: Promise<T>): State<T> {
   const state = new State<T>();
 
   async function bind() {

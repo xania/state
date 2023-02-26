@@ -1,27 +1,23 @@
 ﻿export namespace Rx {
+  export interface GraphNode<T = any> {
+    dependent?: GraphNode<any>;
+    snapshot?: T;
+    dirty: boolean;
+    observers?: NextObserver<T>[];
+    operators?: StateOperator<T>[];
+  }
+
   export interface Stateful<T = any> {
     dependent?: Stateful;
     snapshot?: T;
     dirty: boolean;
     observers?: NextObserver<T>[];
     operators?: StateOperator<T>[];
-    map<U>(f: (x: T) => U): Stateful<U>;
-    bind<U>(f: (t: T) => StateInput<U>): Stateful<U>;
-    prop<K extends keyof T>(name: K): Stateful<T[K]>;
-
-    notify(): void;
-    get(): T | undefined;
-    subscribe(observer: NextObserver<T>): Subscription;
   }
 
   export type Observable<T> = {
     subscribe(observer: NextObserver<T>): Subscription;
   };
-  export type StateInput<T> =
-    | Promise<T>
-    | Stateful<T>
-    | AsyncIterable<T>
-    | Observable<T>;
 
   export type StateOperator<T> =
     | MapOperator<T>
@@ -35,6 +31,10 @@
     Bind,
     Connect,
     Property,
+    /**
+     * merge is used when a target state has multiple sources,
+     * each assign a different key of the target state.
+     */
     Merge,
   }
 
@@ -42,13 +42,13 @@
     type: StateOperatorType.Merge;
     property: keyof U extends T ? keyof U : never;
     snapshot: U;
-    target: Rx.Stateful<U>;
+    target: Rx.GraphNode<U>;
   }
 
   export interface MapOperator<T, U = any> {
     type: StateOperatorType.Map;
     func: (t: T) => U;
-    target: Stateful<U>;
+    target: GraphNode<U>;
   }
 
   export interface BindOperator<T, U = any> {

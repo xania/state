@@ -1,24 +1,25 @@
-﻿import { bind } from './bind';
-import { addDependent, MapOperator } from './map';
-import { prop } from './prop';
-import { Rx } from './rx';
+﻿import { pushNode } from '../graph';
+import { MapOperator, pushOperator } from '../operators/map';
+import { Rx } from '../rx';
 import { subscribe } from './subscribe';
-import { from } from './utils/from';
+import { from } from '../utils/from';
+import { Value } from './value';
+import { StateInput } from '../state-input';
 const syncValue = Symbol('snapshot');
 
-type UnwrapState<T> = T extends Rx.Stateful<infer U> ? U : never;
-type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
+export type UnwrapState<T> = T extends Rx.GraphNode<infer U> ? U : never;
+export type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
 
-export function combineLatest<TArgs extends [...Rx.StateInput<any>[]]>(
+export function combineLatest<TArgs extends [...StateInput<any>[]]>(
   args: [...TArgs]
-): Rx.Stateful<UnwrapStates<TArgs>> {
+) {
   const argsLen = args.length;
   const snapshot: any[] = new Array(argsLen);
   const target = new CombinedState<UnwrapStates<TArgs>>(snapshot as any);
 
   for (let i = 0; i < argsLen; i++) {
-    const source = from(args[i]);
-    addDependent(source, target, false);
+    const source = from(args[i] as any) as Rx.GraphNode<any>;
+    pushNode(source, target, false);
 
     snapshot[i] = source.snapshot;
 
@@ -28,18 +29,13 @@ export function combineLatest<TArgs extends [...Rx.StateInput<any>[]]>(
       snapshot,
       target,
     };
-    const { operators } = source;
-    if (operators) {
-      operators.push(mergeOp);
-    } else {
-      source.operators = [mergeOp];
-    }
+    pushOperator(source, mergeOp);
   }
 
   return target;
 }
 
-class CombinedState<T extends [...any[]]> implements Rx.Stateful<T> {
+class CombinedState<T extends [...any[]]> implements Rx.GraphNode<T> {
   observers?: Rx.NextObserver<T>[];
   operators?: Rx.StateOperator<T>[];
   dirty = false;
@@ -50,9 +46,7 @@ class CombinedState<T extends [...any[]]> implements Rx.Stateful<T> {
     return this.snapshot;
   }
 
-  subscribe: Rx.Stateful<T>['subscribe'] = subscribe;
-  bind: Rx.Stateful<T>['bind'] = bind;
-  prop: Rx.Stateful<T>['prop'] = prop;
+  subscribe = subscribe;
 
   map<U>(f: (x: T) => U) {
     const { snapshot } = this;
@@ -64,17 +58,12 @@ class CombinedState<T extends [...any[]]> implements Rx.Stateful<T> {
       }
     }
 
-    const operator: any = new MapOperator(f, mappedValue);
-    addDependent(this, operator, false);
+    const target = new Value<U>(mappedValue);
+    const operator: any = new MapOperator(f, target);
+    pushNode(this, operator, false);
+    pushOperator(this, operator);
 
-    const { operators } = this;
-    if (operators) {
-      operators.push(operator);
-    } else {
-      this.operators = [operator];
-    }
-
-    return operator;
+    return target;
   }
 
   notify() {

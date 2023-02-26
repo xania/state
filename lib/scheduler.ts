@@ -12,9 +12,15 @@ export const DefaultSyncScheduler: SyncScheduler = {
 export class BatchScheduler implements SyncScheduler {
   states: Rx.Stateful[] = [];
 
-  schedule() {
+  schedule(state: Rx.GraphNode<any>) {
     const { states } = this;
-    states.push.apply(states, arguments as any);
+    for (let i = 0; i < states.length; i++) {
+      if (states[i] === state) return false;
+    }
+
+    states.push(state);
+
+    return true;
   }
 
   flush() {

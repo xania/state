@@ -2,7 +2,7 @@
 import { Value } from './value';
 
 export class State<T> extends Value<T> {
-  constructor(public snapshot?: T) {
+  constructor(snapshot?: T) {
     super(snapshot);
   }
 

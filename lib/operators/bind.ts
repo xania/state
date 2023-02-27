@@ -4,8 +4,8 @@ import { StateInput } from '../state-input';
 import { from } from '../utils/from';
 import { id } from '../utils/id';
 
-export function bind<T, U, TTarget extends Rx.GraphNode>(
-  source: Rx.GraphNode<T>,
+export function bind<T, U, TTarget extends Rx.Stateful>(
+  source: Rx.Stateful<T>,
   binder: (t: T) => StateInput<U>,
   target: TTarget
 ): TTarget {
@@ -20,10 +20,10 @@ export function bind<T, U, TTarget extends Rx.GraphNode>(
   } as Rx.BindOperator<U>;
 
   const bindOp = {
-    prevState: undefined as Rx.GraphNode<U> | undefined | null,
+    prevState: undefined as Rx.Stateful<U> | undefined | null,
     type: Rx.StateOperatorType.Bind,
     func(x: T): U {
-      const boundState = from(binder(x) as any) as Rx.GraphNode<any>;
+      const boundState = from(binder(x) as any) as Rx.Stateful<any>;
       const { prevState } = this;
       if (prevState !== boundState) {
         if (prevState) {
@@ -54,7 +54,7 @@ export function bind<T, U, TTarget extends Rx.GraphNode>(
   return target;
 }
 
-function removeOperation<T>(state: Rx.GraphNode<T>, op: Rx.StateOperator<T>) {
+function removeOperation<T>(state: Rx.Stateful<T>, op: Rx.StateOperator<T>) {
   const { operators } = state;
   if (operators) {
     const idx = operators.indexOf(op);
@@ -62,7 +62,7 @@ function removeOperation<T>(state: Rx.GraphNode<T>, op: Rx.StateOperator<T>) {
   }
 }
 
-function addOperation<T>(state: Rx.GraphNode<T>, op: Rx.StateOperator<T>) {
+function addOperation<T>(state: Rx.Stateful<T>, op: Rx.StateOperator<T>) {
   const { operators } = state;
   if (operators) {
     operators.push(op);

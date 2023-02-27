@@ -1,8 +1,8 @@
 ﻿import { Rx } from './rx';
 
-export function notify<T>(state: Rx.GraphNode<T>) {
+export function notify<T>(state: Rx.Stateful<T>) {
   const { observers, snapshot } = state;
-  if (observers !== undefined && snapshot !== undefined)
+  if (observers !== undefined)
     for (const obs of observers as any) {
       obs.next(snapshot);
     }

@@ -1,14 +1,6 @@
 ﻿export namespace Rx {
-  export interface GraphNode<T = any> {
-    dependent?: GraphNode<any>;
-    snapshot?: T;
-    dirty: boolean;
-    observers?: NextObserver<T>[];
-    operators?: StateOperator<T>[];
-  }
-
   export interface Stateful<T = any> {
-    dependent?: Stateful;
+    dependent?: Stateful<any | void>;
     snapshot?: T;
     dirty: boolean;
     observers?: NextObserver<T>[];
@@ -19,12 +11,13 @@
     subscribe(observer: NextObserver<T>): Subscription;
   };
 
-  export type StateOperator<T> =
+  export type StateOperator<T = any> =
     | MapOperator<T>
     | MergeOperator<T>
     | ConnectOperator<T>
     | PropertyOperator<T, keyof T>
-    | BindOperator<T>;
+    | BindOperator<T>
+    | SignalOperator<T>;
 
   export enum StateOperatorType {
     Map,
@@ -36,19 +29,26 @@
      * each assign a different key of the target state.
      */
     Merge,
+    Signal,
   }
 
   export interface MergeOperator<T, U = any> {
     type: StateOperatorType.Merge;
     property: keyof U extends T ? keyof U : never;
     snapshot: U;
-    target: Rx.GraphNode<U>;
+    target: Rx.Stateful<U>;
+  }
+
+  export interface SignalOperator<T> {
+    type: StateOperatorType.Signal;
+    target: Rx.Stateful<T>;
+    update(): boolean;
   }
 
   export interface MapOperator<T, U = any> {
     type: StateOperatorType.Map;
     func: (t: T) => U;
-    target: GraphNode<U>;
+    target: Stateful<U>;
   }
 
   export interface BindOperator<T, U = any> {
@@ -78,5 +78,9 @@
 
   export interface Subscription {
     unsubscribe(): void;
+  }
+
+  export interface Subscribable<T> {
+    observers?: NextObserver<T>[];
   }
 }

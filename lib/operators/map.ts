@@ -7,10 +7,18 @@ export class MapOperator<T, U> implements Rx.MapOperator<T, U> {
   observers?: Rx.NextObserver<U>[] | undefined;
   operators?: Rx.StateOperator<U>[];
 
-  constructor(public func: (t: T) => U, public target: Rx.GraphNode<U>) {}
+  constructor(public func: (t: T) => U, public target: Rx.Stateful<U>) {}
 }
 
-export function pushOperator(g: Rx.GraphNode, op: Rx.StateOperator<any>) {
+export function pushOperator(
+  g: Rx.Stateful<void>,
+  op: Rx.StateOperator<void>
+): void;
+export function pushOperator(
+  g: Rx.Stateful<any>,
+  op: Rx.StateOperator<any>
+): void;
+export function pushOperator(g: any, op: any) {
   // this.dependent = mop;
   const { operators } = g;
   if (operators) {
@@ -18,4 +26,15 @@ export function pushOperator(g: Rx.GraphNode, op: Rx.StateOperator<any>) {
   } else {
     g.operators = [op];
   }
+}
+export function removeOperator(s: Rx.Stateful, op: Rx.StateOperator) {
+  const { operators } = s;
+  if (operators) {
+    const idx = operators.indexOf(op);
+    if (idx >= 0) {
+      operators.splice(idx, 1);
+      return true;
+    }
+  }
+  return false;
 }

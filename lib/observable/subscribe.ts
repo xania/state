@@ -1,15 +1,17 @@
 ﻿import { Rx } from '../rx';
 
+export interface SubscribeSource {}
 export function subscribe<T, O extends Rx.NextObserver<T>>(
-  this: Rx.Stateful<T>,
+  this: Rx.Subscribable<T>,
   observer: O
 ): Rx.Subscription {
   const value = this;
-  const { snapshot } = value;
 
-  if (snapshot !== undefined) {
-    observer.next(snapshot);
-  }
+  // const { snapshot } = value;
+
+  // if (snapshot !== undefined) {
+  //   observer.next(snapshot);
+  // }
 
   let { observers } = value;
   if (observers) {

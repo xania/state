@@ -7,7 +7,7 @@ import { Value } from './value';
 import { StateInput } from '../state-input';
 const syncValue = Symbol('snapshot');
 
-export type UnwrapState<T> = T extends Rx.GraphNode<infer U> ? U : never;
+export type UnwrapState<T> = T extends Rx.Stateful<infer U> ? U : never;
 export type UnwrapStates<T> = { [P in keyof T]: UnwrapState<T[P]> };
 
 export function combineLatest<TArgs extends [...StateInput<any>[]]>(
@@ -18,7 +18,7 @@ export function combineLatest<TArgs extends [...StateInput<any>[]]>(
   const target = new CombinedState<UnwrapStates<TArgs>>(snapshot as any);
 
   for (let i = 0; i < argsLen; i++) {
-    const source = from(args[i] as any) as Rx.GraphNode<any>;
+    const source = from(args[i] as any) as Rx.Stateful<any>;
     pushNode(source, target, false);
 
     snapshot[i] = source.snapshot;
@@ -35,7 +35,7 @@ export function combineLatest<TArgs extends [...StateInput<any>[]]>(
   return target;
 }
 
-class CombinedState<T extends [...any[]]> implements Rx.GraphNode<T> {
+class CombinedState<T extends [...any[]]> implements Rx.Stateful<T> {
   observers?: Rx.NextObserver<T>[];
   operators?: Rx.StateOperator<T>[];
   dirty = false;

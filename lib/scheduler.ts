@@ -2,31 +2,25 @@
 import { sync } from './sync';
 
 export type SyncScheduler = {
-  schedule(...state: Rx.GraphNode[]): void;
+  schedule(...state: Rx.Stateful[]): void;
 };
 
 export const DefaultSyncScheduler: SyncScheduler = {
-  schedule: sync,
+  schedule(x) {
+    sync([x]);
+  },
 };
 
 export class BatchScheduler implements SyncScheduler {
   states: Rx.Stateful[] = [];
 
-  schedule(state: Rx.GraphNode<any>) {
-    const { states } = this;
-    for (let i = 0; i < states.length; i++) {
-      if (states[i] === state) return false;
-    }
-
-    states.push(state);
-
-    return true;
+  schedule(state: Rx.Stateful<any>) {
+    this.states.push(state);
   }
 
   flush() {
     const { states } = this;
-    sync(...states);
-    states.length = 0;
+    sync(states);
   }
 }
 
@@ -47,9 +41,7 @@ export class AnimationScheduler implements SyncScheduler {
   }
 
   flush = () => {
-    const { states } = this;
-    sync(...states);
-    states.length = 0;
+    sync(this.states);
     this._animationHndl = -1;
   };
 }

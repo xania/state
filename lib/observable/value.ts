@@ -12,7 +12,7 @@ export class Value<T> implements Rx.Stateful<T> {
   public dependent?: Rx.Stateful<any>;
   dirty = false;
 
-  constructor(public snapshot?: T | undefined, public subscribe = _subscribe) {}
+  constructor(public snapshot?: T, public subscribe = _subscribe) {}
 
   get = () => {
     return this.snapshot;
@@ -21,7 +21,7 @@ export class Value<T> implements Rx.Stateful<T> {
   map<U>(f: (x: T) => U) {
     const { snapshot } = this;
     const mapTarget = new Value<U>(
-      snapshot === undefined ? undefined : f(snapshot)
+      snapshot !== undefined ? f(snapshot) : undefined
     );
     const mop: any = new MapOperator(f, mapTarget);
     pushNode(this, mapTarget);

@@ -1,13 +1,10 @@
 ﻿import { subscribe } from '../observable/subscribe';
 import { Rx } from '../rx';
-import { DefaultSyncScheduler, SyncScheduler } from '../scheduler';
+import { schedule, SyncScheduler } from '../scheduler';
 import { register } from './compute';
 
 export class Signal<T = any> implements Rx.Stateful<T> {
-  constructor(
-    public snapshot: T,
-    public scheduler: SyncScheduler = DefaultSyncScheduler
-  ) {}
+  constructor(public snapshot: T) {}
 
   dependent?: Rx.Stateful<any> | undefined;
   dirty: boolean = false;
@@ -31,11 +28,11 @@ export class Signal<T = any> implements Rx.Stateful<T> {
       return false;
     }
     this.dirty = true;
-    this.scheduler.schedule(this);
+    schedule(this);
     return true;
   };
 }
 
-export function signal<T>(value: T, scheduler?: SyncScheduler) {
-  return new Signal(value, scheduler);
+export function signal<T>(value: T) {
+  return new Signal(value);
 }

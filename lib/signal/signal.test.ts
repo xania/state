@@ -1,5 +1,5 @@
 ﻿import { expect, describe, it, vi } from 'vitest';
-import { BatchScheduler } from '../scheduler';
+import { batch } from '../scheduler';
 import { effect } from './effect';
 import { memo } from './memo';
 import { signal, Signal } from './signal';
@@ -52,12 +52,10 @@ describe('signal', () => {
   });
 
   it('batch effects', () => {
-    const batch = new BatchScheduler();
+    const x = new Signal(2);
+    const y = new Signal(3);
 
-    const x = new Signal(2, batch);
-    const y = new Signal(3, batch);
-
-    const f = new Signal(0, batch);
+    const f = new Signal(0);
 
     const eff01 = effect(
       count(
@@ -69,12 +67,12 @@ describe('signal', () => {
     );
     expect(eff01.deps.length).toBe(2);
 
-    x.set(11);
-    expect(f.get()).toBe(6);
-    y.set(12);
-    expect(f.get()).toBe(6);
-
-    batch.flush();
+    batch(() => {
+      x.set(11);
+      expect(f.get()).toBe(6);
+      y.set(12);
+      expect(f.get()).toBe(6);
+    });
 
     expect(f.get()).toBe(132);
   });

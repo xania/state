@@ -1,9 +1,29 @@
 ﻿import { Rx } from './rx';
+import { Signal } from './signal';
 import { sync } from './sync';
 
 export type SyncScheduler = {
   schedule(...state: Rx.Stateful[]): void;
 };
+
+const stack: SyncScheduler[] = [];
+export function schedule(x: Signal) {
+  if (stack.length === 0) {
+    sync([x]);
+  } else {
+    stack[stack.length - 1]!.schedule(x);
+  }
+}
+
+export function batch(fn: Function) {
+  const batch = new BatchScheduler();
+  stack.push(batch);
+  fn();
+  if (batch !== stack.pop()) {
+    throw new Error('unexpected stack element');
+  }
+  batch.flush();
+}
 
 export const DefaultSyncScheduler: SyncScheduler = {
   schedule(x) {

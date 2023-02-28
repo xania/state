@@ -10,14 +10,13 @@ function fib(n: number): number {
 }
 function hard(n: number, log: string) {
   const res = n + fib(16);
-  console.log(log, res);
   return res;
 }
 const numbers = Array.from({ length: 5 }, (_2, i) => i);
 
 describe('benchmarks', () => {
   it('mol bench', () => {
-    let res = [];
+    let res: any[] = [];
     const A2 = signal(0, 'A2');
     const B = signal(0, 'B');
     const C = memo(() => (A2.get() % 2) + (B.get() % 2), 'C');
@@ -33,7 +32,10 @@ describe('benchmarks', () => {
     );
     const H2 = effect(() => res.push(hard(G.get(), 'H')), 'H2');
     const I2 = effect(() => res.push(G.get()), 'I2');
-    const J = effect(() => res.push(hard(F.get(), 'J')), 'J');
+    const J = effect(
+      () => res.push('J ' + F.get() + ' - ' + hard(F.get(), 'J')),
+      'J'
+    );
     function iter(i: number) {
       res.length = 0;
       console.log('---------- ' + i);
@@ -41,11 +43,14 @@ describe('benchmarks', () => {
         B.set(1);
         A2.set(1 + i * 2);
       });
+      console.log(res.join(', '));
+
       console.log('----------');
       batch(() => {
         A2.set(2 + i * 2);
         B.set(2);
       });
+      console.log(res.join(', '));
     }
     iter(1);
     iter(0);

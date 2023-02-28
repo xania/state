@@ -43,7 +43,7 @@ describe('signal', () => {
       )
     );
 
-    expect(eff01.deps.length).toBe(2);
+    expect(eff01.roots.length).toBe(2);
 
     x.set(11);
     expect(f.get()).toBe(33);
@@ -65,7 +65,7 @@ describe('signal', () => {
         (x) => expect(x).toBeLessThan(4)
       )
     );
-    expect(eff01.deps.length).toBe(2);
+    expect(eff01.roots.length).toBe(2);
 
     batch(() => {
       x.set(11);
@@ -84,19 +84,19 @@ describe('signal', () => {
     const y = signal(2);
 
     const result = memo(() => (even.get() ? x.get() : y.get()));
-    expect(result.deps.length).toBe(2);
+    expect(result.roots.length).toBe(2);
 
     expect(result.get()).toBe(y.get());
     expect(x.operators).not.toBeDefined();
-    expect(result.deps).toContain(y);
-    expect(result.deps).toContain(even);
-    expect(result.deps).not.toContain(x);
+    expect(result.roots).toContain(y);
+    expect(result.roots).toContain(even);
+    expect(result.roots).not.toContain(x);
     even.set(true);
     expect(result.get()).toBe(x.get());
     expect(y.operators!.length).toBe(0);
-    expect(result.deps).toContain(x);
-    expect(result.deps).toContain(even);
-    expect(result.deps).not.toContain(y);
+    expect(result.roots).toContain(x);
+    expect(result.roots).toContain(even);
+    expect(result.roots).not.toContain(y);
   });
 });
 

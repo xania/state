@@ -42,7 +42,7 @@
   export interface SignalOperator<T = any> {
     type: StateOperatorType.Signal;
     target: Rx.Stateful<T>;
-    deps: Rx.Stateful[];
+    ready: boolean;
     update(): void;
   }
 

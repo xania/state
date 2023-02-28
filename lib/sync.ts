@@ -1,6 +1,5 @@
 ﻿import { notify } from './notify';
 import { Rx } from './rx';
-import { Signal } from './signal/signal';
 
 export function sync(stack: Rx.Stateful[]) {
   const pending: Rx.SignalOperator[] = [];
@@ -46,15 +45,7 @@ export function sync(stack: Rx.Stateful[]) {
               }
               break;
             case Rx.StateOperatorType.Signal:
-              const deps = operator.deps;
-              let ready = true;
-              for (let i = 0, len = deps.length; i < len; i++) {
-                if (deps[i].dirty) {
-                  ready = false;
-                  break;
-                }
-              }
-              if (ready) {
+              if (operator.ready) {
                 pending.push(operator);
               }
               break;
@@ -66,8 +57,10 @@ export function sync(stack: Rx.Stateful[]) {
         const operator = pending[i];
         operator.update();
         const target = operator.target;
-        target.dirty = true;
-        stack.push(target);
+        if (target.dirty) {
+          console.log('push:', curr + ' => ' + target);
+          stack.push(target);
+        }
       }
       pending.length = 0;
 

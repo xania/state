@@ -10,18 +10,11 @@ export class MapOperator<T, U> implements Rx.MapOperator<T, U> {
   constructor(public func: (t: T) => U, public target: Rx.Stateful<U>) {}
 }
 
-export function pushOperator(
-  g: Rx.Stateful<void>,
-  op: Rx.StateOperator<void>
-): void;
-export function pushOperator(
-  g: Rx.Stateful<any>,
-  op: Rx.StateOperator<any>
-): void;
-export function pushOperator(g: any, op: any) {
+export function pushOperator(g: Rx.Stateful, op: Rx.StateOperator<any>) {
   // this.dependent = mop;
   const { operators } = g;
   if (operators) {
+    if (operators.includes(op)) debugger;
     operators.push(op);
   } else {
     g.operators = [op];
@@ -34,6 +27,8 @@ export function removeOperator(s: Rx.Stateful, op: Rx.StateOperator) {
     if (idx >= 0) {
       operators.splice(idx, 1);
       return true;
+    } else {
+      debugger;
     }
   }
   return false;

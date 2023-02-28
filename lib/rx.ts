@@ -39,10 +39,11 @@
     target: Rx.Stateful<U>;
   }
 
-  export interface SignalOperator<T> {
+  export interface SignalOperator<T = any> {
     type: StateOperatorType.Signal;
     target: Rx.Stateful<T>;
-    update(): boolean;
+    deps: Rx.Stateful[];
+    update(): void;
   }
 
   export interface MapOperator<T, U = any> {

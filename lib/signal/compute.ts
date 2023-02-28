@@ -39,7 +39,11 @@ export function register(signal: Signal | Computed) {
 export type Computation = Signal<any>[];
 
 export class Computed<T = any> implements Rx.Stateful<T> {
-  constructor(public snapshot: T, public deps: Signal[]) {}
+  constructor(
+    public snapshot: T,
+    public deps: Signal[],
+    public label?: string
+  ) {}
   dependent?: Rx.Stateful<any> | undefined;
   dirty: boolean = false;
   observers?: Rx.NextObserver<T>[] | undefined;
@@ -51,4 +55,8 @@ export class Computed<T = any> implements Rx.Stateful<T> {
     register(this);
     return this.snapshot;
   };
+
+  toString() {
+    return this.label;
+  }
 }

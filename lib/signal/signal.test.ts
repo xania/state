@@ -1,4 +1,4 @@
-﻿import { expect, describe, it, vi } from 'vitest';
+﻿import { expect, describe, it } from 'vitest';
 import { batch } from '../scheduler';
 import { effect } from './effect';
 import { memo } from './memo';

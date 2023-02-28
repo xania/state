@@ -1,7 +1,10 @@
 ﻿import { notify } from './notify';
 import { Rx } from './rx';
+import { Signal } from './signal/signal';
 
 export function sync(stack: Rx.Stateful[]) {
+  const pending: Rx.SignalOperator[] = [];
+
   while (stack.length) {
     let curr: Rx.Stateful = stack.pop()!;
     if (curr.dirty) {
@@ -43,15 +46,30 @@ export function sync(stack: Rx.Stateful[]) {
               }
               break;
             case Rx.StateOperatorType.Signal:
-              if (operator.update()) {
-                const target = operator.target;
-                target.dirty = true;
-                stack.push(target);
+              const deps = operator.deps;
+              let ready = true;
+              for (let i = 0, len = deps.length; i < len; i++) {
+                if (deps[i].dirty) {
+                  ready = false;
+                  break;
+                }
+              }
+              if (ready) {
+                pending.push(operator);
               }
               break;
           }
         }
       }
+
+      for (let i = 0, len = pending.length; i < len; i++) {
+        const operator = pending[i];
+        operator.update();
+        const target = operator.target;
+        target.dirty = true;
+        stack.push(target);
+      }
+      pending.length = 0;
 
       if (curr.dependent) {
         stack.push(curr.dependent);

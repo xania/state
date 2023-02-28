@@ -1,10 +1,10 @@
 ﻿import { subscribe } from '../observable/subscribe';
 import { Rx } from '../rx';
-import { schedule, SyncScheduler } from '../scheduler';
+import { schedule } from '../scheduler';
 import { register } from './compute';
 
 export class Signal<T = any> implements Rx.Stateful<T> {
-  constructor(public snapshot: T) {}
+  constructor(public snapshot: T, public label?: string) {}
 
   dependent?: Rx.Stateful<any> | undefined;
   dirty: boolean = false;
@@ -31,8 +31,18 @@ export class Signal<T = any> implements Rx.Stateful<T> {
     schedule(this);
     return true;
   };
+
+  toString() {
+    const operators = this.operators;
+    let retval = this.label + ' [';
+    for (let i = 0, len = operators?.length || 0; i < len; i++) {
+      retval += ' ' + operators![i].target;
+    }
+    retval += ' ]';
+    return retval;
+  }
 }
 
-export function signal<T>(value: T) {
-  return new Signal(value);
+export function signal<T>(value: T, label?: string) {
+  return new Signal(value, label);
 }

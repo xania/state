@@ -15,7 +15,7 @@ export function pushOperator(g: Rx.Stateful, op: Rx.StateOperator<any>) {
   const { operators } = g;
   if (operators) {
     if (operators.includes(op)) debugger;
-    operators.push(op);
+    else operators.push(op);
   } else {
     g.operators = [op];
   }
@@ -28,7 +28,6 @@ export function removeOperator(s: Rx.Stateful, op: Rx.StateOperator) {
       operators.splice(idx, 1);
       return true;
     } else {
-      debugger;
     }
   }
   return false;

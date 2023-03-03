@@ -1,5 +1,11 @@
 {
-  "include": ["lib", "test.ts"],
+  "include": [
+    "lib",
+    "test.ts",
+    "test/graph.test.ts",
+    "test/mol.bench.test.ts",
+    "test/signal.test.ts"
+  ],
   "compilerOptions": {
     "declarationDir": "dist/es2015",
     "module": "ES2015",

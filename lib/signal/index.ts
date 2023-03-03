@@ -1,4 +1,4 @@
-﻿export * from './compute';
+﻿export * from './utils';
 export * from './effect';
-export * from './memo';
+export * from './computed';
 export * from './signal';

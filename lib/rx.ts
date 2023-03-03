@@ -1,10 +1,24 @@
 ﻿export namespace Rx {
+  // export const Mode = {
+  //   synced: 0,
+  //   dirty: 1,
+  //   stale: 2,
+  // } as const;
+
+  // export type Mode = typeof Mode[keyof typeof Mode];
+
   export interface Stateful<T = any> {
-    dependent?: Stateful<any | void>;
+    // refCount?: number;
+    left?: Stateful;
+    right?: Stateful;
     snapshot?: T;
     dirty: boolean;
     observers?: NextObserver<T>[];
     operators?: StateOperator<T>[];
+  }
+
+  export interface Computed<T = any> extends Stateful<T> {
+    deps: Stateful[];
   }
 
   export type Observable<T> = {
@@ -42,8 +56,6 @@
   export interface SignalOperator<T = any> {
     type: StateOperatorType.Signal;
     target: Rx.Stateful<T>;
-    ready: boolean;
-    update(): void;
   }
 
   export interface MapOperator<T, U = any> {

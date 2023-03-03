@@ -1,12 +1,13 @@
 ﻿import { notify } from './notify';
+import { Computed } from './signal';
 import { Rx } from './rx';
 
 export function sync(stack: Rx.Stateful[]) {
-  const pending: Rx.SignalOperator[] = [];
+  // const pending: Rx.SignalOperator[] = [];
 
   while (stack.length) {
     let curr: Rx.Stateful = stack.pop()!;
-    if (curr.dirty) {
+    if (curr.dirty && (!(curr instanceof Computed) || curr.update())) {
       curr.dirty = false;
       if (curr.observers) notify(curr);
 
@@ -45,28 +46,32 @@ export function sync(stack: Rx.Stateful[]) {
               }
               break;
             case Rx.StateOperatorType.Signal:
-              if (operator.ready) {
-                pending.push(operator);
-              }
+              operator.target.dirty = true;
+              // if (operator.update()) {
+              //   const target = operator.target;
+              //   // if (target.dirty) {
+              //   console.log('push:', curr + ' => ' + target);
+              //   // stack.push(target);
+              //   // }
+              // }
               break;
           }
         }
       }
 
-      for (let i = 0, len = pending.length; i < len; i++) {
-        const operator = pending[i];
-        operator.update();
-        const target = operator.target;
-        if (target.dirty) {
-          console.log('push:', curr + ' => ' + target);
-          stack.push(target);
-        }
-      }
-      pending.length = 0;
-
-      if (curr.dependent) {
-        stack.push(curr.dependent);
-      }
+      // for (let i = 0, len = pending.length; i < len; i++) {
+      //   const operator = pending[i];
+      //   operator.update();
+      //   const target = operator.target;
+      //   if (target.mode === Rx.Mode.dirty) {
+      //     console.log('push:', curr + ' => ' + target);
+      //     stack.push(target);
+      //   }
+      // }
+      // pending.length = 0;
+    }
+    if (curr.right) {
+      stack.push(curr.right);
     }
   }
 }

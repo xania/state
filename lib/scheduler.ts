@@ -1,4 +1,5 @@
-﻿import { Rx } from './rx';
+﻿import { findLeft, findRight } from './graph';
+import { Rx } from './rx';
 import { Signal } from './signal';
 import { sync } from './sync';
 
@@ -34,13 +35,28 @@ export const DefaultSyncScheduler: SyncScheduler = {
 export class BatchScheduler implements SyncScheduler {
   states: Rx.Stateful[] = [];
 
-  schedule(state: Rx.Stateful<any>) {
+  schedule(state: Rx.Stateful) {
+    for (let i = 0; i < this.states.length; i++) {
+      const s = this.states[i];
+      if (s === state) {
+        return true;
+      }
+      if (findRight(s, state)) {
+        return false;
+      }
+      if (findLeft(s, state)) {
+        this.states[i] = state;
+        return true;
+      }
+    }
     this.states.push(state);
+    return true;
   }
 
   flush() {
     const { states } = this;
     sync(states);
+    states.length = 0;
   }
 }
 

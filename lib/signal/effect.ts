@@ -1,3 +1,3 @@
-﻿import { memo } from './memo';
+﻿import { computed } from './computed';
 
-export const effect = memo;
+export const effect = computed;

@@ -1,4 +1,10 @@
-﻿<img src="./assets/logo.png" width="100">
+<blockquote>
+This code repository has been given a new home as https://github.com/xania/view. This change was made to bring our codebase into a monorepo environment, and as part of this move, @xania/state will now be promoted to be the official state library for @xania/view.
+</blockquote>
+
+
+
+<img src="./assets/logo.png" width="100">
 
 ### State ![beta](./assets/beta.png)
 
